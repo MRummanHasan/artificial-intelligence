@@ -1,0 +1,27 @@
+# 
+# Author : Rumman
+# Project Name: TreeSearch Algo
+# Problem: input problemState; return solution/failure
+# github: /MRummanHasan
+#
+
+'''
+# Function Algo
+'''
+function successorFunction(currentState){
+
+## STEP 1:
+initialize frontier with initial state of problem
+# frontier is a datastructure (list/array, stack/queue)
+
+##STEP 2:
+loop:
+#2.1  if frontier is empty, return failure #eg: top == -1 its empty
+
+#2.2  Choose node from frontier and remove #Stack: FILO, Queue: FIFO
+
+#2.3 if (node == goal), return correspondgin soln
+
+#2.4 Expand node and Add child to frontier
+
+'''
