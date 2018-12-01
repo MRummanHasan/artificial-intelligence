@@ -1,0 +1,5 @@
+a,aa,aaa,aaaa sS sore-Swelling ear-Pain
+Mouth Cancer,Jaw Pain, sore-Throat teeth-Loose painful-Chewing
+LungDisease, lung problems, cough-with-blood shortness-of-breath
+Cheek Cancer, Swelling in Cheeck, Pain-in-Cheek Pain-Behind-the-nose Loosing-teeths-for-no-reason
+Skin Cancer ,Red-Patch-in-the-Mouth, Weakness-in-Body Fatigue
