@@ -1,4 +1,10 @@
 from pprint import pprint
+import pymysql
+# from scipy.spatial import distance
+import numpy
+
+print("<<< Welcome to the IntelliHealth >>>\n")
+
 
 ####################################################################################
 ######################      ###############          ###############################
@@ -8,6 +14,11 @@ from pprint import pprint
 ##################  ##########  ###########          ###############################
 ####################################################################################
 
+# # SQL connection work
+conn = pymysql.connect(host='localhost', user='root',
+                       password='', db='HealthSystem')
+sq = conn.cursor()
+# # end connection work
 class Patient():
     def __init__(self, id):
         self.id = id
@@ -15,6 +26,9 @@ class Patient():
         self.PresDis = "noPresDis"
         self.medicine = "nomedicine"
         self.medtime = "nomedtime"
+
+
+user_location = [3,5]
 
 class Doctor():
     def __init__(self, name, dept, timeTo, timeFrom, location, price):
@@ -24,6 +38,7 @@ class Doctor():
         self.timeFrom = timeFrom
         self.location = location
         self.price = price
+
 class Disease():
     def __init__(self, name, mainSymp, nSymp):
         self.name = name
@@ -31,26 +46,22 @@ class Disease():
         self.nSymp = nSymp
         self.nAns = []
 
-
-with open("diseaseData.txt", "r") as ins:
-    DiseaseArray = []
-    for line in ins:
-        line = line.strip().split(',')
-        a = line[3].strip().split(' ')
-        print(a)
-        DiseaseArray.append(line)
-
-print(DiseaseArray)
-
-listofAllsymp={
+listofAllsymp = {
     "Deep Cough":["ear-Pain", "sore-Swelling", "change-in-Voice", "difficulty-in-breathing"],
     "MainSymp3": ["weakness", "Fever", "cheek-swelling", "other", "other2"],
     "Nose Bleeding": ['Noisy-Breathing','Bad-Breath', 'Loose-Weight'],
     'lung problems':['cough-with-blood', 'shortness-of-breath'],
-    "Red-Patch-in-the-Mouth":['Weakness-in-Body','Fatigue'],
+    "Red-Patch-in-Mouth":['Weakness-in-Body','Fatigue'],
     'skin problems':['redness-of-face','moles-on-skin'],
     'Diarrhea': ['watery-stool', 'vomiting','abdominal-cramps','belly-pain'],
-    'Eating or Weight Problems': ['W', 'Fever']
+    'Eating or Weight Problems': ['vomiting', 'Fever']
+}
+# distance cost of hospitals
+dist_of_Hosp = {
+    'Nazimabad Hospital': [5, 2],
+    'Johar Hospital': [1, 1],
+    'DHA Hospital': [3, 8],
+    'Saddar Skin Hospital': [5, 5]
 }
 def populateDisease():
     tempdataArray = []
@@ -68,10 +79,60 @@ def contains(list, filter):
             return True
     return False
 
+# # INPUR: Nothing
+# # OUTPUT: raw data of doctor
+# # FUNC: fetch data from SQL
+def fetchDatafromSQL(thisdepart):
+    sql = 'SELECT doc_name,doc_dept,doc_TimeTo, doc_timeFrom,doc_location,doc_price FROM doctor WHERE doc_dept = '+'"'+thisdepart+'"'
+    a.execute(sql)
+    data = a.fetchall()
+    # print(data)
+    return data
+
+# # INPUR: Calculated-percentages of symptoms by User, Disease-to-Depart Data
+# # OUTPUT: Specific department name as patients symptoms
+# # FUNC: Check Department
+def check_depart(symp_percent, Disease_to_dept):
+    highVal = 0
+    inverse = [(value, key) for key, value in symp_percent.items()]
+    try:
+        highVal = max(inverse)[0]
+    except:
+        pass
+
+    ## Key at highest value
+    if highVal != 0.0:
+        highValKey = list(symp_percent.keys())[list(symp_percent.values()).index(highVal)]
+    else:
+        return 'General'
+
+    for dtdk, dtdv in Disease_to_dept.items():
+        if dtdv.__contains__(highValKey):
+            # print("success this depart: ")
+            return dtdk  # matched deaprtment
+
+    return 'General'
+
+Disease_to_dept = {
+    'ENT': ['Disease0', 'Disease1'],
+    'General': ['Influenza', 'Disease3'],
+    'Cancer': ['Oral', 'Disease4'],
+    'Skin': ['Disease5', 'Disease6'],
+    'Dentist': ['Disease7', 'Disease8'],
+    'OPD': ['D0', 'Disease3'],
+    'Psychology': ['Disease2', 'Disease4']
+}
+
 ##################################################################################################
+# # STEP: 1
+# populate/fetch data
+
+# # STEP: 2
+#main working
+
 disArray = []
 tempdataArray = populateDisease()
-indexofdis = []
+indexofdis = 0
 userSymp = []
 pat_IDs = 00
 All_patient_ID = [] #remove after use
@@ -118,11 +179,7 @@ while(progFlow != 0):
                                     if all(elem in line for elem in userSymp):
                                         line = line.strip().split(',')
                                         a = line[3].strip().split(' ')
-                                        tempdataArray.append(Disease(line[1],line[2],a))         
-
-
-
-
+                                        tempdataArray.append(Disease(line[1],line[2],a))
     elif typ == '2':
         print("\nWELCOME DOCTOR ")
         doc = True
@@ -189,7 +246,72 @@ while(progFlow != 0):
         
     elif typ == '4':
         print("WELCOME! researcher")
+        # pandas csv work
+        # import pandas as pd
+        # data = pd.read_csv('diseaseData.txt')
+        # print(data)
         for diseaseDetails in tempdataArray:
             print(diseaseDetails.name, diseaseDetails.mainSymp,
                 diseaseDetails.nSymp, diseaseDetails.nAns)
+    elif typ == '0':
+        print("Good Bye")
+        break
 
+
+
+# # STEP: 3
+# # Calculate percentage of symptom occurance
+symp_percent = {}
+for dispercent in disArray:
+    ansSize = sum(dispercent.nAns)
+    tsymp = len(dispercent.nSymp)
+    per = (ansSize / tsymp) * 100
+    symp_percent[dispercent.name] = per
+
+possibleDisease = []
+for k,v in symp_percent.items():
+    if v != 0.0:
+        possibleDisease.append([k,str(v)+" %"])
+print(possibleDisease)
+
+def findNearestHosp(dist_of_Hosp, disArray):
+    for eachdoc in disArray:
+        AllhospCordinates = []
+        # # Contraints for Location
+        hosp_cord = dist_of_Hosp[eachdoc.location]
+
+        user_points = (user_location[0], user_location[1], 0)
+        hosp_points = (hosp_cord[0], hosp_cord[1], 0)
+        dst = numpy.linalg.norm( user_points-hosp_points)
+        # scipy.spatial.distance.euclidian(minimal, maximal)
+        # dst = distance.euclidean(user_points, hosp_points)
+        # print(dst, "dsit from hosp")
+        AllhospCordinates.append(dst)
+    print()
+    try:
+        minVal = min(AllhospCordinates)
+        indexof_hospCord = AllhospCordinates.index(minVal)
+        print("Nearest Hospital is: ",
+              disArray[indexof_hospCord].location)
+    except:
+        print("Please visit your nearest Hospital")
+
+# # STEP: 4
+thisdepart = check_depart(symp_percent, Disease_to_dept)
+# print(thisdepart)
+
+# # STEP: 5
+# # Fetch data as per user entry
+
+# # INPUR: Nothing
+# # OUTPUT: raw data of doctor
+# # FUNC: fetch data from SQL
+sql = 'SELECT doc_name,doc_dept,doc_TimeTo, doc_timeFrom,doc_location,doc_price FROM doctor WHERE doc_dept = '+'"'+thisdepart+'"'
+sq.execute(sql)
+data = sq.fetchall()
+
+
+
+# # STEP: 7
+# # Tell nearest hospital
+findNearestHosp(dist_of_Hosp, disArray)
