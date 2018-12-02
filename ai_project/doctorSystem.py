@@ -22,10 +22,11 @@ sq = conn.cursor()
 class Patient():
     def __init__(self, id):
         self.id = id
-        self.RecomDis = {} # { } dist
-        self.PresDis = "noPresDis"
-        self.medicine = "nomedicine"
-        self.medtime = "nomedtime"
+        self.RecomDis = [] # { } dist
+        self.PresDis = "no Prescribed Disease"
+        self.medicine = "no Medicine Suggested"
+        self.medtime = "no medtime"
+        self.hosp = "no Hosp Assigned"
 
 
 user_location = [3,5]
@@ -38,6 +39,7 @@ class Doctor():
         self.timeFrom = timeFrom
         self.location = location
         self.price = price
+        
 
 class Disease():
     def __init__(self, name, mainSymp, nSymp):
@@ -49,9 +51,6 @@ class Disease():
 listofAllsymp = {
     "Deep Cough":["ear-Pain", "sore-Swelling", "change-in-Voice", "difficulty-in-breathing"],
     "MainSymp3": ["weakness", "Fever", "cheek-swelling", "other", "other2"],
-    "Nose Bleeding": ['Noisy-Breathing','Bad-Breath', 'Loose-Weight'],
-    'lung problems':['cough-with-blood', 'shortness-of-breath'],
-    "Red-Patch-in-Mouth":['Weakness-in-Body','Fatigue'],
     'skin problems':['redness-of-face','moles-on-skin'],
     'Diarrhea': ['watery-stool', 'vomiting','abdominal-cramps','belly-pain'],
     'Eating or Weight Problems': ['vomiting', 'Fever']
@@ -133,7 +132,7 @@ Disease_to_dept = {
 disArray = []
 tempdataArray = populateDisease()
 indexofdis = 0
-userSymp = []
+
 pat_IDs = 00
 All_patient_ID = [] #remove after use
 patArray = []
@@ -142,11 +141,13 @@ progFlow = -1
 while(progFlow != 0):
     print("1-Patient\n2-Doctor\n3-Nurse\n4-Statistics\n0-Quit")
     typ = input("User type>>> ")
-
+    
     if typ == '1':
+        userSymp = []
         pat_IDs = pat_IDs + 1
         patArray.append(Patient(pat_IDs))
         All_patient_ID.append(pat_IDs)  #remove after use
+
         print("\nWELCOME Patient. Your ID is "+ str(pat_IDs) )
         print(All_patient_ID)  #remove after use
 
@@ -180,6 +181,73 @@ while(progFlow != 0):
                                         line = line.strip().split(',')
                                         a = line[3].strip().split(' ')
                                         tempdataArray.append(Disease(line[1],line[2],a))
+        
+
+        print("zzzzzzzzzzzz")
+        # # STEP: 3
+        # # Calculate percentage of symptom occurance
+        symp_percent = {}
+        for dispercent in disArray:
+            ansSize = sum(dispercent.nAns)
+            tsymp = len(dispercent.nSymp)
+            per = (ansSize / tsymp) * 100
+            symp_percent[dispercent.name] = per
+
+        possibleDisease = []
+        for k,v in symp_percent.items():
+            if v != 0.0:
+                possibleDisease.append([k,str(v)+" %"])
+        patArray[pat_IDs-1].RecomDis.append(possibleDisease)
+        print(possibleDisease)
+
+
+        '''           
+        def findNearestHosp(dist_of_Hosp, disArray):
+            for eachdoc in disArray:
+                AllhospCordinates = []
+                # # Contraints for Location
+                hosp_cord = dist_of_Hosp[eachdoc.location]
+
+                user_points = (user_location[0], user_location[1], 0)
+                hosp_points = (hosp_cord[0], hosp_cord[1], 0)
+                dst = numpy.linalg.norm( user_points-hosp_points)
+                # scipy.spatial.distance.euclidian(minimal, maximal)
+                # dst = distance.euclidean(user_points, hosp_points)
+                # print(dst, "dsit from hosp")
+                AllhospCordinates.append(dst)
+            print()
+            try:
+                minVal = min(AllhospCordinates)
+                indexof_hospCord = AllhospCordinates.index(minVal)
+                print("Nearest Hospital is: ",
+                    disArray[indexof_hospCord].location)
+            except:
+                print("Please visit your nearest Hospital")
+        '''
+
+        # # STEP: 4
+        thisdepart = check_depart(symp_percent, Disease_to_dept)
+        # print(thisdepart)
+
+        # # STEP: 5
+        # # Fetch data as per user entry
+
+        # # INPUR: Nothing
+        # # OUTPUT: raw data of doctor
+        # # FUNC: fetch data from SQL
+        sql = 'SELECT doc_name,doc_dept,doc_TimeTo, doc_timeFrom,doc_location,doc_price FROM doctor WHERE doc_dept = '+'"'+thisdepart+'"'
+        sq.execute(sql)
+        data = sq.fetchall()
+        print(data)
+
+        # # STEP: 7
+        # # Tell nearest hospital
+        # findNearestHosp(dist_of_Hosp, disArray)
+
+
+
+
+
     elif typ == '2':
         print("\nWELCOME DOCTOR ")
         doc = True
@@ -200,6 +268,8 @@ while(progFlow != 0):
                                 break
                             elif docInputType == '0':
                                 doc = False
+
+
                 elif myPatID == 0:
                     doc = False
                     print("i said break")
@@ -209,6 +279,10 @@ while(progFlow != 0):
             except:
                 print("ERROR : invalid ID")                    
                 break
+
+
+        
+        
         
     elif typ == '3':
         print("\nWELCOME NURSE ")
@@ -223,7 +297,7 @@ while(progFlow != 0):
                         if pat.id == myPatID:
                             print("Your Patient's Data: ",pat.id, pat.RecomDis, pat.PresDis, pat.medicine)
                             print()
-                            docInputType = input("1-Enter Prescribed Disease\n2-Change Patient\n0-Quit\n> ")
+                            docInputType = input("1-Enter Medicine and Time\n2-Change Patient\n0-Quit\n> ")
                             if docInputType == '1':
                                 # confirmation work
                                 pat.medicine = input("Medicine you suggested: ")
@@ -243,75 +317,22 @@ while(progFlow != 0):
                 break
 
         
-        
     elif typ == '4':
         print("WELCOME! researcher")
         # pandas csv work
         # import pandas as pd
         # data = pd.read_csv('diseaseData.txt')
         # print(data)
-        for diseaseDetails in tempdataArray:
-            print(diseaseDetails.name, diseaseDetails.mainSymp,
-                diseaseDetails.nSymp, diseaseDetails.nAns)
+        docInputType = input("1-Check disease detail\n2-check Patient detail\n0-Quit\n> ")
+        if docInputType == '1':
+                
+            for diseaseDetails in tempdataArray:
+                print(diseaseDetails.name, diseaseDetails.mainSymp,
+                    diseaseDetails.nSymp, diseaseDetails.nAns)
+
+        elif docInputType == '2':
+            for pats in patArray:
+                pprint(vars(pats))
     elif typ == '0':
         print("Good Bye")
         break
-
-
-
-# # STEP: 3
-# # Calculate percentage of symptom occurance
-symp_percent = {}
-for dispercent in disArray:
-    ansSize = sum(dispercent.nAns)
-    tsymp = len(dispercent.nSymp)
-    per = (ansSize / tsymp) * 100
-    symp_percent[dispercent.name] = per
-
-possibleDisease = []
-for k,v in symp_percent.items():
-    if v != 0.0:
-        possibleDisease.append([k,str(v)+" %"])
-print(possibleDisease)
-
-def findNearestHosp(dist_of_Hosp, disArray):
-    for eachdoc in disArray:
-        AllhospCordinates = []
-        # # Contraints for Location
-        hosp_cord = dist_of_Hosp[eachdoc.location]
-
-        user_points = (user_location[0], user_location[1], 0)
-        hosp_points = (hosp_cord[0], hosp_cord[1], 0)
-        dst = numpy.linalg.norm( user_points-hosp_points)
-        # scipy.spatial.distance.euclidian(minimal, maximal)
-        # dst = distance.euclidean(user_points, hosp_points)
-        # print(dst, "dsit from hosp")
-        AllhospCordinates.append(dst)
-    print()
-    try:
-        minVal = min(AllhospCordinates)
-        indexof_hospCord = AllhospCordinates.index(minVal)
-        print("Nearest Hospital is: ",
-              disArray[indexof_hospCord].location)
-    except:
-        print("Please visit your nearest Hospital")
-
-# # STEP: 4
-thisdepart = check_depart(symp_percent, Disease_to_dept)
-# print(thisdepart)
-
-# # STEP: 5
-# # Fetch data as per user entry
-
-# # INPUR: Nothing
-# # OUTPUT: raw data of doctor
-# # FUNC: fetch data from SQL
-sql = 'SELECT doc_name,doc_dept,doc_TimeTo, doc_timeFrom,doc_location,doc_price FROM doctor WHERE doc_dept = '+'"'+thisdepart+'"'
-sq.execute(sql)
-data = sq.fetchall()
-
-
-
-# # STEP: 7
-# # Tell nearest hospital
-findNearestHosp(dist_of_Hosp, disArray)
