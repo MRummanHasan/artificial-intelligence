@@ -1,5 +1,11 @@
-a,aa,aaa,aaaa sS sore-Swelling ear-Pain
-Mouth Cancer,Jaw Pain, sore-Throat teeth-Loose painful-Chewing
-LungDisease, lung problems, cough-with-blood shortness-of-breath
-Cheek Cancer, Swelling in Cheeck, Pain-in-Cheek Pain-Behind-the-nose Loosing-teeths-for-no-reason
-Skin Cancer ,Red-Patch-in-the-Mouth, Weakness-in-Body Fatigue
+6,Skin Cancer, Red-Patch-in-the-Mouth, Weakness-in-Body Fatigue, 0.8 0.4 0.2 0.1
+7,Sun Problem, Nose Bleeding, Noisy-Breathing Bad-Breath Loose-Weight, 0.8 0.4 0.2 0.1
+8,Oral Cancer, Red Patch in Mouth, Weakness-in-Body Fatigue, 0.8 0.4 0.2 0.1
+9,Soraisis, Mole, skin-color-change patches-on-skin itching, 0.8 0.4 0.2 0.1
+10,ToothAche, teeth color change , sore-Throat teeth-Loose, 0.8 0.4 0.2 0.1
+11,Enamul Pain, Temperature, teeth-pain sore-Swelling ear-Pain, 0.8 0.4 0.2 0.1
+12,Dengue, High Temperature, body-pain body-color-change, 0.8 0.4 0.2 0.1
+13,Mouth Cancer,Jaw Pain, sore-Throat teeth-Loose painful-Chewing, 0.8 0.4 0.2 0.1
+14,LungDisease, lung problems, cough-with-blood shortness-of-breath, 0.8 0.4 0.2 0.1
+15,Cheek Cancer, Swelling in Cheeck, Pain-in-Cheek Pain-Behind-the-nose Loosing-teeths-for-no-reason, 0.8 0.4 0.2 0.1
+16,Chemosis, eye swollen, eye pain, change-in-vision difficulty-in-breathing fainting, 1 0.5 0.2 0.1
