@@ -10,17 +10,21 @@ print("Collection of Sentences: \n",pd.DataFrame(BagOfWords),"\n")
 # or
 # print("Collection of Sentences: \n",BagOfWords, "\n")
 
-Q = [1, 1, 1, 1, 0, 0, 1]
-v = 0
-d = []
-for row in BagOfWords:
-    for i in range(len(row)):
-        v += (row[i]-Q[i])**2
-    
-    v = math.sqrt(v)
-    d.append(v)
-    v = 0
+qeury = [1, 1, 1, 1, 0, 0, 1]
 
+def eucl(BagOfWords,qeury):
+    v = 0
+    d = []
+    for row in BagOfWords:
+        for i in range(len(row)):
+            v += (row[i]-qeury[i])**2
+        
+        v = math.sqrt(v)
+        d.append(v)
+        v = 0
+    return d
+
+d = eucl(BagOfWords,qeury)
 print("Eucl distance per sentence:\n",pd.DataFrame(d))
 # or
 # print("Eucl distance per sentence:\n",d)
